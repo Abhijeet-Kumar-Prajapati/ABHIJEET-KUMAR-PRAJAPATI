@@ -172,6 +172,29 @@ for (const [name, wantPages] of DOCS) {
         body.indexOf("Abhijeet Kumar Prajapati") !== -1);
 }
 
+console.log("\n=== name and monogram ===");
+/* The header previously truncated the name to the surname on narrow screens,
+   which read as a different person. These assertions pin both forms down. */
+const nameVal = (data.match(/name:\s*"([^"]+)"/) || [])[1];
+const initialsVal = (data.match(/initials:\s*"([^"]+)"/) || [])[1];
+
+check("PROFILE.name is the full name", nameVal === "Abhijeet Kumar Prajapati", nameVal);
+check("PROFILE.initials matches the name",
+      initialsVal === "AKP",
+      initialsVal + " (Abhijeet Kumar Prajapati)");
+
+check("header monogram element exists", /id="brandMark"/.test(html));
+check("header name element exists", /id="brandName"/.test(html));
+check("header shows the full name, not a truncation",
+      /Abhijeet Kumar Prajapati/.test(html) && html.indexOf("Abhijeet&nbsp;") === -1);
+check("brand is driven by PROFILE, not hard-coded",
+      js.indexOf('PROFILE.initials') !== -1 && js.indexOf('PROFILE.name') !== -1);
+check("no leftover 'long name' truncation rules", css.indexOf("span.long") === -1);
+
+/* Every PDF and the page title must spell the name the same way. */
+check("page title carries the full name",
+      html.indexOf("<title>Abhijeet Kumar Prajapati") !== -1);
+
 console.log("\n=== external scripts ===");
 const cdn = [...html.matchAll(/<(?:script|link)[^>]+(?:src|href)="(https?:\/\/[^"]+)"/g)].map((m) => m[1]);
 check("no CDN or external dependency", cdn.length === 0, cdn.join(", ") || "all local");

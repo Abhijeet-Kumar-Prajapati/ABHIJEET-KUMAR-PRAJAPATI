@@ -79,6 +79,12 @@
 
   function paintStatic() {
     $("#year").textContent = new Date().getFullYear();
+
+    /* The header monogram and name are filled from PROFILE rather than typed in
+       twice, so the short form can never drift from the full one. */
+    $("#brandMark").textContent = PROFILE.initials;
+    $("#brandName").textContent = PROFILE.name;
+
     $("#mailLink").href = "mailto:" + PROFILE.email;
     $("#mailText").textContent = PROFILE.email;
 
