@@ -195,6 +195,59 @@ check("no leftover 'long name' truncation rules", css.indexOf("span.long") === -
 check("page title carries the full name",
       html.indexOf("<title>Abhijeet Kumar Prajapati") !== -1);
 
+/* The generated PDFs are checked twice: structurally above, and for layout here.
+   Text running past the right margin is invisible in a viewer until it lands on
+   an edge, and a "one page" resume that spills onto a second sheet defeats the
+   point of it. Both were real problems, so both are now assertions. */
+console.log("\n=== pdf layout ===");
+const PW = 595.28, PH = 841.89, MARGIN = 46, RIGHT = PW - MARGIN;
+const REG = { " ": 278, "!": 278, '"': 355, "#": 556, "$": 556, "%": 889, "&": 667, "'": 191,
+  "(": 333, ")": 333, "*": 389, "+": 584, ",": 278, "-": 333, ".": 278, "/": 278, ":": 278,
+  ";": 278, "<": 584, "=": 584, ">": 584, "?": 556, "@": 1015, "[": 278, "]": 278, "^": 469,
+  "_": 556, "{": 334, "|": 260, "}": 334, "~": 584 };
+const BOLD = { " ": 278, "!": 333, '"': 474, "#": 556, "$": 556, "%": 889, "&": 722,
+  "'": 238, "(": 333, ")": 333, "*": 389, "+": 584, ",": 278, "-": 333, ".": 278, "/": 278,
+  ":": 333, ";": 333, "<": 584, "=": 584, ">": 584, "?": 611, "@": 975, "[": 333, "]": 333,
+  "^": 584, "_": 556, "{": 389, "|": 280, "}": 389, "~": 584 };
+
+function measure(s, size, bold) {
+  let w = 0;
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    if (c >= 65 && c <= 90) w += bold ? 722 : 667;
+    else if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57)) w += 556;
+    else w += (bold ? BOLD : REG)[ch] !== undefined ? (bold ? BOLD : REG)[ch] : 556;
+  }
+  return (w / 1000) * size;
+}
+
+for (const [name] of DOCS) {
+  const p = path.join(ROOT, "downloads", name);
+  if (!fs.existsSync(p)) continue;
+  const t = fs.readFileSync(p).toString("latin1");
+  const streams = [...t.matchAll(/<< \/Length (\d+) >>\s*stream\r?\n([\s\S]*?)\r?\nendstream/g)];
+
+  let overflow = 0, lowestAll = Infinity, pages = streams.length;
+  streams.forEach((s) => {
+    const items = [...s[2].matchAll(/BT \/(F\d) ([\d.]+) Tf ([\d.]+) ([\d.]+) Td \((.*?)\) Tj ET/g)]
+      .map((m) => ({ bold: m[1] === "F2", size: +m[2], x: +m[3], y: +m[4],
+                     text: m[5].replace(/\\([()\\])/g, "$1") }));
+    items.forEach((it) => {
+      lowestAll = Math.min(lowestAll, it.y);
+      if (it.x + measure(it.text, it.size, it.bold) > RIGHT + 0.5) overflow++;
+      if (it.y < MARGIN - 0.5) overflow++;
+    });
+  });
+
+  check(name + " has no text past the margins", overflow === 0, overflow + " overflowing run(s)");
+
+  /* A page that is more than a quarter empty looks unfinished. */
+  const unused = Math.round(lowestAll - MARGIN);
+  check(name + " pages are reasonably filled", unused < 140,
+        "least-filled page leaves " + unused + "pt");
+  check(name + " page count", pages === (name.indexOf("Resume") !== -1 ? 1 : 2), pages + " page(s)");
+}
+
 console.log("\n=== external scripts ===");
 const cdn = [...html.matchAll(/<(?:script|link)[^>]+(?:src|href)="(https?:\/\/[^"]+)"/g)].map((m) => m[1]);
 check("no CDN or external dependency", cdn.length === 0, cdn.join(", ") || "all local");

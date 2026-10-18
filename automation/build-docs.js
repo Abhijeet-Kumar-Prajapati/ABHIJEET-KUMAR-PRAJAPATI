@@ -260,6 +260,17 @@ const PROJECTS = [
 /* The four strongest projects, for the one-page resume. */
 const RESUME_PROJECTS = [PROJECTS[0], PROJECTS[2], PROJECTS[1], PROJECTS[3]];
 
+/* Concrete engineering facts, used to close out the long CV. Each one describes
+   something actually built rather than an aspiration. */
+const HIGHLIGHTS = [
+  "Built an offline-first AI workspace with nine agents and nineteen local plugins that keeps working with no API key at all. Six test suites and 320+ checks, all passing.",
+  "Wrote a syntax highlighter covering 22 languages from scratch, hardened against XSS and free of any CDN dependency.",
+  "Implemented Reed-Solomon error correction over GF(256) by hand to produce a working QR encoder, versions 1 to 20.",
+  "Generated all geometry, skinning and motion procedurally at runtime, so the WebGL studio ships with no models, no textures and no build step.",
+  "Shipped applications targeting Windows, macOS, Android and the browser, keeping the dependency count at zero.",
+  "Added five interface languages, including right-to-left Arabic layout.",
+];
+
 /* ---------- Shared layout helpers ---------------------------------------- */
 
 /* The current page lives in a layout object rather than being passed around by
@@ -280,12 +291,12 @@ function need(L, space) {
 }
 
 function sectionTitle(L, label) {
-  const p = need(L, 46);
-  p.y -= 12;
+  const p = need(L, 38);
+  p.y -= 10;
   p.text(label.toUpperCase(), M, p.y, 9.5, true, BRAND);
-  p.y -= 6;
+  p.y -= 5;
   p.line(M, p.y, PW - M, RULE, 0.8);
-  p.y -= 15;
+  p.y -= 13;
 }
 
 function body(L, s, size, col, indent, lead) {
@@ -318,6 +329,41 @@ function statStrip(L) {
     p.text(small, bx - textWidth(small, 7.8, false) / 2, p.y - 32, 7.8, false, MUTED);
   });
   p.y -= 44;
+}
+
+/* Shrink a string until it fits the given width, so a long value can never
+   silently run off the right edge of the page. Returns the size used. */
+function fitSize(s, maxW, base, bold, floor) {
+  const min = floor || base * 0.72;
+  let size = base;
+  while (size > min && textWidth(s, size, bold) > maxW) size -= 0.1;
+  /* Rounded, so the emitted content stream carries 8.7 rather than
+     8.700000000000003 - same glyphs, far less noise in the file. */
+  return Math.round(size * 100) / 100;
+}
+
+/* A compact multi-column list, used to fit the remaining projects onto the
+   resume in two columns rather than one long column that wastes the page. */
+function compactGrid(L, items, cols, rowH) {
+  const rows = Math.ceil(items.length / cols);
+  const colW = CONTENT_W / cols;
+  const p = need(L, rows * rowH + 4);
+  const top = p.y;
+
+  items.forEach(([name, tagline, stack], i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = M + col * colW;
+    const y = top - row * rowH;
+
+    const stackW = textWidth(stack, 8, false);
+    const nameSize = fitSize(name, colW - stackW - 16, 9.4, true);
+    p.text(name, x, y, nameSize, true, INK);
+    p.textRight(stack, x + colW - 10, y, 8, false, BRAND);
+    p.text(tagline, x, y - 10.5, 8.4, false, MUTED);
+  });
+
+  p.y -= rows * rowH;
 }
 
 /* ---------- CV: two pages ------------------------------------------------- */
@@ -383,8 +429,17 @@ function buildCv() {
     p.y -= 4;
   }
 
+  sectionTitle(L, "Engineering highlights");
+  for (const h of HIGHLIGHTS) {
+    const lines = wrap(h, 9, false, CONTENT_W - 14);
+    p = need(L, lines.length * 11.6 + 6);
+    p.text("-", M + 2, p.y, 9, true, BRAND);
+    lines.forEach((ln, i) => p.text(ln, M + 14, p.y - i * 11.6, 9, false, MUTED));
+    p.y -= lines.length * 11.6 + 6;
+  }
+
   p = L.page;
-  p.y -= 6;
+  p.y -= 4;
   p.line(M, p.y, PW - M, RULE, 0.8);
   p.y -= 14;
   p.text(
@@ -443,6 +498,13 @@ function buildResume() {
     p.y -= 3;
   }
 
+  /* The remaining projects, two columns so the page is used rather than left
+     half empty. */
+  sectionTitle(L, "Also shipped");
+  const featured = RESUME_PROJECTS.map((p) => p[0]);
+  compactGrid(L, PROJECTS.filter((p) => featured.indexOf(p[0]) === -1)
+    .map(([name, tagline, stack]) => [name, tagline, stack]), 2, 21);
+
   L.page.y -= 4;
   statStrip(L);
 
@@ -451,7 +513,7 @@ function buildResume() {
   p.line(M, p.y, PW - M, RULE, 0.8);
   p.y -= 13;
   p.text(
-    "All eleven projects: " + SITE + "  |  Every repository is public and cloneable.",
+    "All eleven projects: github.com/Abhijeet-Kumar-Prajapati  -  every repository is public and cloneable.",
     M, p.y, 8, false, MUTED
   );
 
