@@ -1,0 +1,38 @@
+Abhijeet Kumar Prajapati - Complete Package
+===========================================
+
+This archive contains the entire portfolio repository: the website, the
+local preview server, the PDF and package generators, and the docs.
+
+WHAT TO DO NEXT
+---------------
+1. Install Node.js 18 or newer from https://node.org
+2. Open a terminal in this folder
+3. Run:      npm run dev
+4. Open the address it prints, usually http://127.0.0.1:8123/
+
+There is nothing to install. package.json lists zero dependencies, and
+there is no build step - the site is plain HTML, CSS and JavaScript.
+
+FOLDER MAP
+----------
+index.html            the page
+serve.js              local preview server
+assets/style.css      design system, layout, animations, print styles
+assets/app.js         rendering, motion, filtering, command palette
+assets/data.js        all content - projects, skills, stats
+assets/banner.jpg     the banner graphic
+downloads/            generated CV PDF and the website-only archive
+automation/           the scripts that build the downloadable files
+README.md             profile, with every project documented
+SECURITY.md           security policy
+PRIVACY.md            what the profile exposes
+
+REBUILDING THE DOWNLOADS
+-----------------------
+npm run cv        regenerate the CV PDF
+npm run package   regenerate the website-only archive
+npm run full      regenerate this archive
+npm run build     all three, in order
+
+Made by Abhijeet Kumar Prajapati.
