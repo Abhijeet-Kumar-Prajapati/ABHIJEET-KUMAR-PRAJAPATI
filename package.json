@@ -1,0 +1,34 @@
+{
+  "name": "abhijeet-kumar-prajapati-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfolio website and profile repository for Abhijeet Kumar Prajapati. Static, dependency-free, no build step.",
+  "author": "Abhijeet Kumar Prajapati",
+  "license": "UNLICENSED",
+  "homepage": "https://abhijeet-kumar-prajapati.github.io/Abhijeet-Kumar-Prajapati/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhijeet-Kumar-Prajapati/ABHIJEET-KUMAR-PRAJAPATI.git"
+  },
+  "keywords": [
+    "portfolio",
+    "static-site",
+    "no-dependencies",
+    "vanilla-js"
+  ],
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node serve.js --open",
+    "docs": "node automation/build-docs.js",
+    "package": "node automation/build-package.js",
+    "full": "node automation/build-full-package.js",
+    "build": "npm run docs && npm run package && npm run full",
+    "check": "node automation/check-site.js",
+    "profile": "python automation/profile_manager.py --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

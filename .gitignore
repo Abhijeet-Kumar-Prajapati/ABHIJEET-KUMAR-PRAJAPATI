@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.env
+.env.local
+*.token
+
+# temporary folder used while assembling the downloadable portfolio zip
+downloads/_stage/
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+.idea/
